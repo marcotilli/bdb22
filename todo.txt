@@ -1,0 +1,11 @@
+- Space Value: Ball Feld (Returner)
+- method 4: ownership
+- method 5: ownership by space value
+- player grades
+	- Calc. each players Space Value (vgl Stern)
+	- übers CNN
+
+--------------
+
++ CNN
++ Space Occupation Gained
