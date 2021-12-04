@@ -88,7 +88,7 @@ bdb_animate_plot_field <- function(ex_game, ex_play, ex_track, ex_play_control, 
       # field control
       geom_raster(
         data = ex_play_control, 
-        mapping = aes(x = x, y = y, fill = control), alpha = 0.5, interpolate = T
+        mapping = aes(x = x, y = y, fill = control), alpha = 0.8, interpolate = T
       ) +
       scale_fill_gradient2(
         low = ex_game$away_1, high = ex_game$home_2, mid = "white", midpoint = 0.5, 

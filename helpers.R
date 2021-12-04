@@ -3,7 +3,7 @@ library(tidyverse)
 read_games <- function(year){
   
   # select basic
-  df_games <- read.csv('data/games.csv') %>%
+  df_games <- read.csv('./data/games.csv') %>%
     filter(season == year) %>%
     select(gameId, homeTeamAbbr, visitorTeamAbbr)
   
@@ -13,12 +13,12 @@ read_games <- function(year){
 }
 
 read_plays <- function(year){
-  st_results<- c('Fair Catch', 'Kickoff Team Recovery', 'Muffed', 'Return') 
+  st_results<- c('Fair Catch', 'Muffed', 'Return') 
   # exclude Touchback, Out of Bounds, Downed - since there is no Returner
   
   #TODO: exclude Onside Kicks
   
-  df_plays <- read.csv('data/plays.csv') %>%
+  df_plays <- read.csv('./data/plays.csv') %>%
     filter(startsWith(as.character(gameId), as.character(year))) %>%
     # only Kickoff or Punts (no Field Goal or XP)
     filter(specialTeamsPlayType %in% c('Punt', 'Kickoff')) %>%
@@ -34,7 +34,7 @@ read_plays <- function(year){
 
 read_track <- function(year, playId_){
 
-  df_track <- read.csv(paste('data/tracking', as.character(year), '.csv', sep=''), sep=',', dec='.') %>%
+  df_track <- read.csv(paste('./data/tracking', as.character(year), '.csv', sep=''), sep=',', dec='.') %>%
     filter(playId %in% playId_) %>%
     # select only useful columns
     select(gameId, playId, playDirection, x, y, s, dir, event, displayName, jerseyNumber, frameId, team)
@@ -44,7 +44,7 @@ read_track <- function(year, playId_){
 
 read_players <- function(){
   
-  df_games <- read.csv('data/players.csv') %>% 
+  df_games <- read.csv('./data/players.csv') %>% 
     select(nflId, displayName)
   
   return(df_games)
@@ -71,43 +71,45 @@ adapt_single_track <- function(df_track, ex_game, gId, pId){
    ex_track = convert_radiant(ex_track, ex_game)
   return(ex_track)
 }
-adapt_single_track2 <- function(df_track, ex_game, gId, pId){
+adapt_single_track_flip <- function(df_track, ex_game, gId, pId){
   ex_track <- df_track %>% 
                   filter(gameId==gId, playId==pId) %>%
+                  mutate(x_ = x, y_ = y, dir_ = dir) %>%
                   select(-c('gameId', 'playId')) %>%
   # flip play, s.t. punt/kick always goes from left to RIGHT
     # x:   ? 120-x ist nicht richtig glaube ich? (v.a. siehe max(df_track$x))
-    # dir: dir-180 mod 360 ?
-                  mutate(x = ifelse(
-                            ex_track$playDirection[1] == 'right',
-                            x, flip(x)),
-                         dir = ifelse(
-                           ex_track$playDirection[1] == 'right',
-                           dir, flip(dir)))
-  #
+    # dir: dir mod 180 ? -> flips horizontally AND vertically --> also flip y
+                  mutate(x = ifelse(playDirection == 'right', x_, 120 - x_),
+                         y = ifelse(playDirection == 'right', y_, 160/3 - y_),
+                         dir = ifelse(playDirection == 'right', dir_, (dir+180)%%360)) #%>%
+                  #select(-c(x_, y_, dir_))
   ex_track = convert_radiant(ex_track, ex_game)
   return(ex_track)
 }
 
-adapt_single_play <- function(df_plays, ex_track, gId, pId){
+adapt_single_play <- function(df_plays, playdir, gId, pId){
   ex_play <- df_plays %>% 
               filter(gameId==gId, playId==pId) %>%
-              mutate(line_of_scrimmage = ifelse(
-                                    ex_track$playDirection[1] == 'right',
-                                    absoluteYardlineNumber,
-                                    100 - absoluteYardlineNumber)) %>%
+              mutate(line_of_scrimmage = absoluteYardlineNumber) %>%
               select(-c(absoluteYardlineNumber))
   return(ex_play)
 }
 # if we flipped tracking data -> all plays go from left to right
-adapt_single_play2 <- function(df_plays, gId, pId){
-  ex_play <- df_plays %>% filter(gameId==gId, playId==pId) 
+adapt_single_play_flip <- function(df_plays, playdir, gId, pId){
+  ex_play <- df_plays %>% 
+              filter(gameId==gId, playId==pId) %>%
+              mutate(line_of_scrimmage = ifelse(
+                        playdir == 'right',
+                        absoluteYardlineNumber,
+                        120 - absoluteYardlineNumber)) %>%
+              select(-c(absoluteYardlineNumber))
+  
   return(ex_play)
 }
 
 
 fetch_team_colors <- function(h_team, a_team) {
-  team_colors = read.csv('data/team_colors.txt', sep='\t')
+  team_colors = read.csv('./data/team_colors.txt', sep='\t')
   #colors_url <- "https://raw.githubusercontent.com/asonty/ngs_highlights/master/utils/data/nfl_team_colors.tsv"
   
   h_team_col <- team_colors %>% filter(teams == h_team) 

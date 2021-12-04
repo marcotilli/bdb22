@@ -4,7 +4,7 @@ library(ggplot2)
 library(gganimate)
 
 source('./helpers.R')
-source('./funs_bdbFieldOwners/bdb_animate_plot_field.R')
+source('./bdb_animate_plot_field.R')
 source('./calc_fieldcontrol.R')
 source('./calc_spacevalue.R')
 
@@ -24,14 +24,16 @@ ex_gameId <- 2018120208
 ex_playId <- 3040
 
 ex_game  <- adapt_single_game(df_games, ex_gameId)
-ex_track <- adapt_single_track(df_track, ex_game, ex_gameId, ex_playId)
-ex_play  <- adapt_single_play(df_plays, ex_gameId, ex_playId)
+ex_track <- adapt_single_track_flip(df_track, ex_game, ex_gameId, ex_playId)
+ex_play  <- adapt_single_play_flip(df_plays, ex_track$playDirection[1], ex_gameId, ex_playId)
 ex_track <- ex_track %>% select(-c('playDirection'))
 #rm(df_track, df_plays, df_games)
 
 method = 'field_control_basic'
 #method = 'field_control_spacevalue'
-event_ = paste('punt', 'received', sep='_')
+event_ = c(paste('punt', 'received', sep='_'),
+           paste('kick', 'received', sep='_'),
+           'fair_catch')
 
 if (method == 'animate'){
   play_anim <- bdb_animate_plot_field(ex_game, ex_play, ex_track, '', method = method)
@@ -39,7 +41,7 @@ if (method == 'animate'){
 } else if (method == 'frame' || method == 'field_control_basic'){
     ex_track_ <- func_calc_fc_combined(ex_track)
     if (method == 'frame'){
-      ex_track_ <- ex_track %>% filter(event == event_)
+      ex_track_ <- ex_track_ %>% filter(event %in% event_)
     }
     df_control  <- ex_track_ %>%
         filter(team != "football") %>%
@@ -63,12 +65,13 @@ play_anim
 
 
 # Next:
+#   - flip field: punt always from left to right (Sa)
 #   - how to put influence(s) of in a matrix (df_control / space_value_frame)
-#   - transfer to python
-#   - use matrix for CNN (team or each players, resp.)
-#        a) SpaceValued-TeamControl
+#   - transfer to python (So)
+#   - use matrix for CNN (team or each players, resp.) (Mo Start)
+#        a) SpaceValued-TeamControl (aa non-weighted ab SV-weighted)
 #              1. nur Punts, Input: 1 Channel, frame zu punt_receeived; Goal: RetYards
-#              2. Punts und Kicks, wie 1.
+#              2. Punts + Kicks, wie 1.
 #              3. mit LSTM und über mehrere Frames 
 #                  (zB AvgTimeDiff Received&FirstContact oder Received&Tackle)
 #        b) SpaceValued Players
