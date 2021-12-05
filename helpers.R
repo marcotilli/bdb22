@@ -22,8 +22,6 @@ read_plays <- function(year){
     filter(startsWith(as.character(gameId), as.character(year))) %>%
     # only Kickoff or Punts (no Field Goal or XP)
     filter(specialTeamsPlayType %in% c('Punt', 'Kickoff')) %>%
-    #filter(specialTeamsPlayType == 'Punt') %>%
-    #filter(specialTeamsPlayType == 'Kickoff') %>%
     # only "finished" Kicks (no blocked or Non-Special-Teams Result)
     filter(specialTeamsResult %in% st_results) %>%
     # select only useful columns

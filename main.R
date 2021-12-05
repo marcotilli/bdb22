@@ -65,7 +65,6 @@ play_anim
 
 
 # Next:
-#   - flip field: punt always from left to right (Sa)
 #   - how to put influence(s) of in a matrix (df_control / space_value_frame)
 #   - transfer to python (So)
 #   - use matrix for CNN (team or each players, resp.) (Mo Start)
