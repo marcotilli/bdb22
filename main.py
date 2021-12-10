@@ -5,40 +5,47 @@ Created on Sun Dec  5 13:40:02 2021
 @author: lordm
 """
 
-# BASEPATH: C:\Users\lordm\Desktop\Work\BigDataBowl_2022
-import sys, os
-BASE_PATH = os.getcwd()
-sys.path.append(BASE_PATH+'\\bdb22_github')
+# Import python libraries
+# ======================================================================== #
+import os
+from torch.utils.data import DataLoader
 
-from helpers_load import load_dataframes
-from prep_data import get_data
-from build_data import BasicTeamFieldControl, data_loader_params
-from torch.utils.data import Dataloader
+# ======================================================================== #
+# base_path: C:\Users\lordm\Desktop\Work\BigDataBowl_2022
+base_path = os.getcwd()
 
-
-years = [2018, 2019, 2020]
-# load data
-df_plays, df_track, ids_tuple = load_dataframes(years, BASE_PATH)
+# LOAD DATA
+# ======================================================================== #
+from load_data import load_dataframes
+df_plays, df_track, df_players, ids_tuple = load_dataframes(base_path)
 
 # get data
-dataset = BasicTeamFieldControl(df_track, df_plays, ids_tuple, get_data)
-data_loader = Dataloader(dataset, *data_loader_params.values())
+# ======================================================================== #
+from build_data import BasicTeamFieldControl#, data_loader_params
+from prep_data import get_data
+dataset = BasicTeamFieldControl(df_track, df_plays, df_players, ids_tuple, get_data)
+#del(df_plays, df_track, df_players)
+data_loader = DataLoader(dataset, batch_size = 2, shuffle=True)
+
 #split data
+# ======================================================================== #
 
 
 # init model, optimizer
+# ======================================================================== #
 from model import hyperparams
 
 
+# ======================================================================== #
 # train model
 
 
+# ======================================================================== #
 # evaluate model
 
 
 
 # Next:
-#   - how to put influence(s) of in a matrix (df_control / space_value_frame)
 #   - use matrix for CNN (team or each players, resp.) 
 #        a) SpaceValued-TeamControl: 2 Channel (Team Non-weighted, Returner-SV)
 #              1. nur Punts, frame zu punt_receeived; Goal: RetYards

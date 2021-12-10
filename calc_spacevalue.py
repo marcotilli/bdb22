@@ -17,42 +17,51 @@ import numpy as np
 from calc_fieldcontrol import func_calc_fc_combined, compute_player_zoi
 
 
-def calc_spacevalue(retName, ex_track, frameId, raw=False):
+def calc_spacevalue(retName, ex_track, frameId=None, raw=False):
   
     # (1) find Returner and filter tracking data
     #returnerName = df_players %>% filter(nflId == strtoi(retId))
     ret_track = ex_track.loc[ex_track.displayName == retName].copy()
   
     if raw:
-        # (1b) filter for frame "kick_received"
-        ret_track = ret_track.loc[ret_track.frameId == frameId]
+        # (1b) filter for frame "XX_received"
+        #TODO: later, need to uncomment this!!!
+        #ret_track = ret_track.loc[ret_track.frameId == frameId]
         # (2) Calculate Bivariate NV for Returner for each frame
         ret_track = func_calc_fc_combined(ret_track)
   
     # (3) apply SV to whole fied by adapting calc_fieldcontrol/compute_team_frame_control
     space_value_frame = compute_player_zoi(ret_track)[['frameId', 'x', 'y', 'influence']]
-    space_value_frame['influence'] = np.round(space_value_frame.influence, 6)
-  
+    # use sigmoid to transform influence to [0,1]-interval
+    space_value_frame['influence'] = 1 / (1 + np.exp(space_value_frame.influence))
+    
     return space_value_frame
 
 
 # (4) apply Space Value to (a) team control 
-def compute_team_frame_control2(frame_tracking_data, home_team, retName):
+def compute_team_frame_control2(frame_track_data, home_team, retName):
     
-    sp_val_frame = calc_spacevalue(retName, frame_tracking_data)
+    sp_val_frame = calc_spacevalue(retName, frame_track_data)
     
-    team_frm_contr = frame_tracking_data[frame_tracking_data.team != 'football'].copy()
-    team_frm_contr = team_frm_contr.groupby(team_frm_contr.displayName)
-    df = [team_frm_contr.get_group(g) for g in team_frm_contr.groups]
-    df = pd.DataFrame(map(compute_player_zoi, df))
-    # if player is from home_team, influence should be negative
-    df['influence'] *= (1-2*df.team == home_team)
-    df.assign(control=df.eval('influence').groupby(['frameId', 'x', 'y']).agg('sum'))
-    df['control'] = 1 / (1 + np.exp(df['control']))
+    frm_tr_dat = frame_track_data[frame_track_data.team != 'football'].copy()
+    #frm_tr_dat = frm_tr_dat.groupby(frm_tr_dat.displayName)
+    #frm_tr_dat = [frm_tr_dat.get_group(g) for g in frm_tr_dat.groups]
+    frm_tr_dat = [player_data for (name, player_data) in 
+                  frm_tr_dat.groupby(frm_tr_dat.displayName)]
+    frm_tr_dat = list(map(compute_player_zoi, frm_tr_dat))
+    frm_tr_dat = pd.concat(frm_tr_dat)
 
-    df['control'] = 0.5* (1 + df['control'] * sp_val_frame.influence)
-    return df
-
+    # if player is from home_team, influence is negative
+    frm_tr_dat['influence'] *= (1-2*(frm_tr_dat.team == home_team))
+    #frm_tr_dat.assign(control=frm_tr_dat.groupby(['frameId', 'x', 'y']).influence.agg('sum'))
+    frm_tr_dat['control'] = frm_tr_dat.groupby(['x', 'y']).influence.transform('sum')
+    
+    frm_tr_dat['control'] = 1 / (1 + np.exp(frm_tr_dat['control'])) # control [0,1]
+    # apply space value (0 to 1) and transform back to interval [0,1]
+    frm_tr_dat['control'] = 0.5* (1 + frm_tr_dat['control'] * sp_val_frame.influence)
+    
+    return frm_tr_dat
+ 
 
 #from scipy.stats import multivariate_normal as mv #library(mvtnorm)
 #from calc_fieldcontrol import compute_covariance_matrix
