@@ -10,6 +10,22 @@ import torch.nn as nn
 #import torch.nn.functional as F
 
 
+#https://medium.com/dataseries/visualizing-the-feature-maps-and-filters-by-convolutional-neural-networks-e1462340518e
+#https://pub.towardsai.net/tuning-pytorch-hyperparameters-with-optuna-470edcfd4dc
+#https://medium.com/dataseries/k-fold-cross-validation-with-pytorch-and-sklearn-d094aa00105f
+
+#https://www.frontiersin.org/articles/10.3389/fmolb.2019.00044/full
+
+
+def calc_outsize(H, W, kern, pad=(0,0), dil=(1,1), stride=(2,2)):
+    #H_out = (H + 2 * pad[0] - dil[0] * (kern[0] - 1) - 1) / stride[0] + 1
+    #W_out = (W + 2 * pad[1] - dil[1] * (kern[1] - 1) - 1) / stride[1] + 1
+    H_out = (H - dil[0] * (kern[0] - 1) - 1) / stride[0] + 1
+    W_out = (W - dil[1] * (kern[1] - 1) - 1) / stride[1] + 1
+    H_out = np.round(H_out - 0.5, 0)
+    W_out = np.round(W_out - 0.5, 0)
+    return (H_out, W_out)
+
 # Hyperparameters
 class hypers():
     def __init__(self):
@@ -40,15 +56,15 @@ class CNN1_Team(nn.Module):
     def __init__(self, n_chan = 2, layers_dict = None):
         #self.layers_dict = layers_dict
         self.conv = nn.Sequential(
-                        nn.Conv2d(n_chan, 8, 3),
+                        nn.Conv2d(n_chan, 16, (5,3)),
+                        nn.MaxPool2d(3),
                         nn.ReLU(),
-                        nn.AvgPool2d(3),
-                        nn.Conv2d(8, 16, 3),
+                        nn.Conv2d(16, 32, (5,3)),
+                        nn.MaxPool2d(3),
                         nn.ReLU(),
-                        nn.AvgPool2d(3),
-                        nn.Conv2d(16, 32, 5),
-                        nn.ReLU(),
-                        nn.AvgPool2d(5)
+                        #nn.Conv2d(16, 32, 3),
+                        #nn.ReLU(),
+                        #nn.MaxPool2d(3)
                         )
         self.linear = nn.Sequential(
                         nn.Flatten(),

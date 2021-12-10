@@ -9,7 +9,6 @@ import numpy as np
 from load_data      import load_single_play
 from calc_fieldcontrol import func_calc_fc_combined, compute_team_frame_control
 
-
 ############################# 
 #TODO:
 # get_data fertigen

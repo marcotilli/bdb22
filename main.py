@@ -7,14 +7,14 @@ Created on Sun Dec  5 13:40:02 2021
 
 # Import python libraries
 # ======================================================================== #
-import os
+import os, sys
 from torch.utils.data import DataLoader
 
 # ======================================================================== #
 # base_path: C:\Users\lordm\Desktop\Work\BigDataBowl_2022
 base_path = os.getcwd()
+sys.path.append('.\bdb22_github')
 
-# LOAD DATA
 # ======================================================================== #
 from load_data import load_dataframes
 df_plays, df_track, df_players, ids_tuple = load_dataframes(base_path)
@@ -25,7 +25,10 @@ from build_data import BasicTeamFieldControl#, data_loader_params
 from prep_data import get_data
 dataset = BasicTeamFieldControl(df_track, df_plays, df_players, ids_tuple, get_data)
 #del(df_plays, df_track, df_players)
-data_loader = DataLoader(dataset, batch_size = 2, shuffle=True)
+data_loader = DataLoader(dataset, batch_size = 1, shuffle=False)
+
+for i, _ in enumerate(data_loader):
+    print(i+1, end=' \r')
 
 #split data
 # ======================================================================== #
