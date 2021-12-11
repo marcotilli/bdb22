@@ -10,6 +10,7 @@ Created on Sun Dec  5 13:40:02 2021
 import os, sys
 import torch
 from sklearn.model_selection import KFold
+from torch.utils.data import DataLoader
 
 # Init overall stuff
 # ======================================================================== #
@@ -29,18 +30,23 @@ df_plays, df_track, df_players, ids_tuples = load_dataframes(base_path, years)
 from build_data import build_data_loader
 dataset, testloader = build_data_loader(df_track, df_plays, df_players, ids_tuples)
 
+#trainloader = DataLoader(dataset, batch_size=1, shuffle=False)
+#for tester in tqdm(trainloader):
+#    tester_data, tester_target = tester
+#    break
+
 # INIT HYPERPARAMETERS, K-FOLD
 # ======================================================================== #
 torch.manual_seed(42)
 from model import hyperparameters
-n_epoch, batch_size, kfold = hyperparameters()
+n_epochs, batch_size, kfold = hyperparameters()
 splits = KFold(n_splits = kfold, shuffle = True, random_state = 42)
 
 # TRAIN MODEL
 # ======================================================================== #
 from train_eval import trainer
-model = trainer(splits, dataset, n_epoch, batch_size, device)
-torch.save(model,'k_cross_CNN.pt')  
+model = trainer(splits, dataset, n_epochs, batch_size, device)
+torch.save(model,'k_cross_CNN.pt')
 
 # TEST MODEL
 # ======================================================================== #

@@ -24,11 +24,9 @@ from torch.utils.data import  DataLoader, SubsetRandomSampler
 #   splits
 #
     
-
-
 def trainer(splits, dataset, n_epochs, batch_size, device):
 
-    from model import CNN1_Team as network
+    from model import CNN1_Team
     criterion = nn.L1Loss(reduction='sum')
     
     foldperf={}
@@ -40,7 +38,7 @@ def trainer(splits, dataset, n_epochs, batch_size, device):
         train_loader  = DataLoader(dataset, batch_size=batch_size, sampler=train_sampler)
         test_loader   = DataLoader(dataset, batch_size=batch_size, sampler=test_sampler)
     
-        model = network() # network # init every fold
+        model = CNN1_Team() # network # init every fold
         model.to(device)
         optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
@@ -66,7 +64,7 @@ def trainer(splits, dataset, n_epochs, batch_size, device):
     return model 
 
 
-
+###########################################################################
 
 
 def train_epoch(model, device, dataloader, loss_fn, optimizer):
@@ -74,12 +72,12 @@ def train_epoch(model, device, dataloader, loss_fn, optimizer):
     train_loss, train_correct = 0.0, 0
     model.train()
     
-    for tracks, labels in tqdm(dataloader, desc='Train Epoch Loop', leave = False):
+    for tracks, labels in tqdm(dataloader, desc='Train Epoch Loop'):
 
         tracks, labels = tracks.to(device), labels.to(device)
         optimizer.zero_grad()
-        output = model(tracks)
-        loss = loss_fn(output,labels)
+        output = model(tracks.float())
+        loss = loss_fn(output.reshape(-1), labels)
         loss.backward()
         optimizer.step()
         train_loss += loss.item() * tracks.size(0)
@@ -95,13 +93,13 @@ def valid_epoch(model, device, dataloader, loss_fn):
     valid_loss, val_correct = 0.0, 0
     model.eval()
     
-    for tracks, labels in tqdm(dataloader, desc='Valid Loop', leave = False):
+    for tracks, labels in tqdm(dataloader, desc='Valid Loop'):
 
         tracks,labels = tracks.to(device),labels.to(device)
-        output = model(tracks)
-        loss=loss_fn(output,labels)
-        valid_loss+=loss.item()*tracks.size(0)
+        output = model(tracks.float())
+        loss   = loss_fn(output.reshape(-1), labels)
+        valid_loss += loss.item()*tracks.size(0)
         scores, predictions = torch.max(output.data,1)
-        val_correct+=(predictions == labels).sum().item()
+        val_correct += (predictions == labels).sum().item()
 
     return valid_loss,val_correct

@@ -19,10 +19,9 @@ import torch.optim as optim
 
 
 # this function is to be used somewhere else, network is changable
-def network():
-    hypermodel = hypermodel(CNN1_Team)
-    return hypermodel
-
+def hyper_network():
+    net = hypernetwork(CNN1_Team)
+    return net
 
 def calc_outsize(H, W, kern, pad=(0,0), dil=(1,1), stride=(2,2)):
     #H_out = (H + 2 * pad[0] - dil[0] * (kern[0] - 1) - 1) / stride[0] + 1
@@ -35,12 +34,12 @@ def calc_outsize(H, W, kern, pad=(0,0), dil=(1,1), stride=(2,2)):
 
 # Hyperparameters
 def hyperparameters():
-        batch_size = 4
-        n_epochs   = 16
-        kfold = 8
-        return batch_size, n_epochs, kfold
+    n_epochs   = 10    
+    batch_size = 4
+    kfold = 8
+    return n_epochs, batch_size, kfold
 
-class hypermodel():
+class hypernetwork():
     def __init__(self, network):
         #        self.layers_dict = {'n_conv_lays': 2, 
         #                            'c1':  8, 'c2': 16, #'c3': 32,
@@ -51,7 +50,7 @@ class hypermodel():
         
     def init_model(self, net):
         model = net()
-        return model
+        return model.float()
 #    def get_model_params(self):
 #        return self.layers_dict
 
@@ -76,11 +75,11 @@ class CNN1_Team(nn.Module):
         super(CNN1_Team, self).__init__()
         #self.layers_dict = layers_dict
         self.conv = nn.Sequential(
-                        nn.Conv2d(n_chan, 8, (3,3)),
-                        nn.MaxPool2d(2),
+                        nn.Conv2d(n_chan, 8, (5,2)),
+                        nn.MaxPool2d((5,2)),
                         nn.ReLU(),
-                        nn.Conv2d(8, 16, 2),
-                        nn.MaxPool2d(3),
+                        nn.Conv2d(8, 16, 5),
+                        nn.MaxPool2d(5),
                         nn.ReLU(),
                         nn.Dropout(0.4)
                         #nn.Conv2d(16, 32, 3),
@@ -88,7 +87,8 @@ class CNN1_Team(nn.Module):
                         #nn.MaxPool2d(3)
                         )
         self.linear = nn.Sequential(
-                        nn.Linear(16, 8),
+                        nn.Flatten(),
+                        nn.Linear(192, 8),
                         nn.ReLU(),
                         nn.Dropout(0.1),
                         nn.Linear(8, 1)         
@@ -96,10 +96,8 @@ class CNN1_Team(nn.Module):
     
     def forward(self, x):
         x = self.conv(x)
-        print(x.size)
-        x = x.view(x.size(1), -1)
         x = self.linear(x)
-        return(x)
+        return x
         
         
 

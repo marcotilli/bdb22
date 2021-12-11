@@ -61,8 +61,8 @@ def load_playIds(df_plays):
 
 def fetch_team_colors(h_team, a_team, base_path=None):
     
-    if base_path is None: base_path = '/Users/marcotilli/Desktop/Projects/Kaggle_NFL/BigDataBowl2022/'
-    team_colors = pd.read_csv(base_path+'data/team_colors.txt', sep='\t').drop(
+    if base_path is None: base_path = 'C:\\Users\\lordm\\Desktop\\Work\\BigDataBowl_2022\\'
+    team_colors = pd.read_csv(base_path+'data\\team_colors.txt', sep='\t').drop(
                     columns=['color1_family'])
     #colors_url <- "https://raw.githubusercontent.com/asonty/ngs_highlights/master/utils/data/nfl_team_colors.tsv"
     team_colors = team_colors[[team in (h_team, a_team) for team in team_colors.teams]]
@@ -74,14 +74,14 @@ def fetch_team_colors(h_team, a_team, base_path=None):
 def read_plays(base_path, years=None):
     # brauche ja nicht nach years filtern, wenn ich eh alle nehme?
     
-    df_games = pd.read_csv(base_path+'/data/games.csv')
+    df_games = pd.read_csv(base_path+'\\data\\games.csv')
     if years is None:
         df_games = df_games[['gameId', 'homeTeamAbbr', 'visitorTeamAbbr']]  
-        df_plays = pd.read_csv(base_path+'/data/plays.csv') 
+        df_plays = pd.read_csv(base_path+'\\data\\plays.csv') 
     else: # if 1 year is given
         df_games = df_games.loc[df_games.season == years[0]][
                                   ['gameId', 'homeTeamAbbr', 'visitorTeamAbbr']]      
-        df_plays = pd.read_csv(base_path+'/data/plays.csv')   
+        df_plays = pd.read_csv(base_path+'\\data\\plays.csv')   
         # select games from given year
         df_plays = df_plays[[str(gId)[:4] == str(years[0]) for gId in df_plays.gameId]]
     
@@ -103,7 +103,7 @@ def read_track(years, playIds_, base_path):
     
     df_track = None
     for year_string in (str(y) for y in years):
-        df_temp = pd.read_csv(base_path+'/data/tracking'+year_string+'.csv', decimal='.')
+        df_temp = pd.read_csv(base_path+'\\data\\tracking'+year_string+'.csv', decimal='.')
         if not df_track is None:
             df_track = df_track.append(df_temp)
         else: 
@@ -117,7 +117,7 @@ def read_track(years, playIds_, base_path):
     return df_track
 
 def read_players(base_path):
-    df_players = pd.read_csv(base_path+'/data/players.csv')[['nflId', 'displayName']].copy()
+    df_players = pd.read_csv(base_path+'\\data\\players.csv')[['nflId', 'displayName']].copy()
     
     # manually change some names:
     df_players.loc[df_players.displayName=='Cedrick Wilson', 'displayName'] = 'Ced Wilson'
