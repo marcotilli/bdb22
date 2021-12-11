@@ -28,11 +28,12 @@ def func_calc_fc_combined(ex_track):
 
 def compute_team_frame_control(frame_track_data, home_team):
     #frame_track_data, home_team = ex_track_, h_team
+    if frame_track_data.size == 0:
+        return np.zeros((3))
     
     frm_tr_dat = frame_track_data[frame_track_data.team != 'football'].copy()
     #frm_tr_dat = frm_tr_dat.groupby(frm_tr_dat.displayName)
     #frm_tr_dat = [frm_tr_dat.get_group(g) for g in frm_tr_dat.groups]
-    if frm_tr_dat.shape[0] < 22: print('ERROR 1')
     frm_tr_dat = [player_data for (name, player_data) in 
                   frm_tr_dat.groupby(frm_tr_dat.displayName)]
     frm_tr_dat = list(map(compute_player_zoi, frm_tr_dat))

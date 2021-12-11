@@ -8,31 +8,24 @@ Created on Sun Dec  5 13:40:02 2021
 # Import python libraries
 # ======================================================================== #
 import os, sys
-from torch.utils.data import DataLoader
-
+from tqdm import tqdm
 # ======================================================================== #
 # base_path: C:\Users\lordm\Desktop\Work\BigDataBowl_2022
 base_path = os.getcwd()
-sys.path.append('.\bdb22_github')
+sys.path.append('.\\bdb22_github')
 
 # ======================================================================== #
 from load_data import load_dataframes
-df_plays, df_track, df_players, ids_tuple = load_dataframes(base_path)
+years = [2020]
+df_plays, df_track, df_players, ids_tuples = load_dataframes(base_path, years)
 
-# get data
+# get Dataloader (init Dataset and split data)
 # ======================================================================== #
-from build_data import BasicTeamFieldControl#, data_loader_params
-from prep_data import get_data
-dataset = BasicTeamFieldControl(df_track, df_plays, df_players, ids_tuple, get_data)
-#del(df_plays, df_track, df_players)
-data_loader = DataLoader(dataset, batch_size = 1, shuffle=False)
+from build_data import build_data_loader
 
-for i, _ in enumerate(data_loader):
-    print(i+1, end=' \r')
-
-#split data
-# ======================================================================== #
-
+train_loader = build_data_loader(df_track, df_plays, df_players, ids_tuples)
+for _ in tqdm(train_loader):
+    pass
 
 # init model, optimizer
 # ======================================================================== #

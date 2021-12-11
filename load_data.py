@@ -8,13 +8,14 @@ Created on Sun Dec  5 13:40:03 2021
 import pandas as pd
 import numpy as np
 
-def load_dataframes(base_path):
-    years = [2018, 2019, 2020]
+def load_dataframes(base_path, years=None):
+    if years is None:
+        years = [2018, 2019, 2020]
     #df_games = read_games(year, base_path)
     print('Read players data ... ', end='\r')
     df_players = read_players(base_path)
     print('Read plays data ... ', end='\r')
-    df_plays = read_plays(base_path)
+    df_plays = read_plays(base_path, years)
     print('Read tracking data ... ', end='\r')
     df_track = read_track(years, set(df_plays.playId), base_path)
     print('Read play-ids ... ', end='\r')
@@ -33,12 +34,35 @@ def load_playIds(df_plays):
     gId_pIds = [(gid, pId) 
                 for (gid, group) in df_plays.groupby(df_plays.gameId) 
                 for pId in set(group.playId)]
+    
+    # delete elements manually where event is missing:
+    # season 2020
+    [gId_pIds.remove(i) for i in [(2020092004, 144), (2020101800, 932), 
+                                  (2020101813, 3391), (2020110106, 1783), 
+                                  (2020110807, 762), (2020110810, 272), 
+                                  (2020110810, 659), (2020110810, 1270), 
+                                  (2020120200, 657), (2020120603, 2737), 
+                                  (2020110200, 1572), (2020120610, 3092), 
+                                  (2020121700, 826), (2020121900, 1232),
+                                  (2020122010, 2634), (2020121900, 1506),
+                                  (2020122013, 142), (2020122704, 4087), 
+                                  (2020122712, 2995), (2020122712, 3219),
+                                  ]]
+    [gId_pIds.remove(i) for i in [(2020091310, 701), (2020091307, 121), 
+                                  (2020092002, 2683), (2020092711, 2309), 
+                                  (2020092711, 2619), (2020101112, 1389), 
+                                  (2020101200, 2425), (2020101900, 254),  
+                                  (2020112905, 145), (2020122003, 1429) 
+                                  ]]
+     
     return gId_pIds
+
+
 
 def fetch_team_colors(h_team, a_team, base_path=None):
     
-    if base_path is None: base_path = 'C:\\Users\\Tilli\\Desktop\\Privat\\BigDataBowl2022\\'
-    team_colors = pd.read_csv(base_path+'\\data\\team_colors.txt', sep='\t').drop(
+    if base_path is None: base_path = 'C:\\Users\\lordm\\Desktop\\Work\\BigDataBowl_2022\\'
+    team_colors = pd.read_csv(base_path+'data\\team_colors.txt', sep='\t').drop(
                     columns=['color1_family'])
     #colors_url <- "https://raw.githubusercontent.com/asonty/ngs_highlights/master/utils/data/nfl_team_colors.tsv"
     team_colors = team_colors[[team in (h_team, a_team) for team in team_colors.teams]]
@@ -51,14 +75,16 @@ def read_plays(base_path, years=None):
     # brauche ja nicht nach years filtern, wenn ich eh alle nehme?
     
     df_games = pd.read_csv(base_path+'\\data\\games.csv')
-    #df_games = df_games.loc[df_games.season in years][
-    #                            ['gameId', 'homeTeamAbbr', 'visitorTeamAbbr']]      
-    df_games = df_games[['gameId', 'homeTeamAbbr', 'visitorTeamAbbr']]  
+    if years is None:
+        df_games = df_games[['gameId', 'homeTeamAbbr', 'visitorTeamAbbr']]  
+        df_plays = pd.read_csv(base_path+'\\data\\plays.csv') 
+    else: # if 1 year is given
+        df_games = df_games.loc[df_games.season == years[0]][
+                                  ['gameId', 'homeTeamAbbr', 'visitorTeamAbbr']]      
+        df_plays = pd.read_csv(base_path+'\\data\\plays.csv')   
+        # select games from given year
+        df_plays = df_plays[[str(gId)[:4] == str(years[0]) for gId in df_plays.gameId]]
     
-    #years_str = [str(y) for y in years]
-    df_plays = pd.read_csv(base_path+'\\data\\plays.csv')   
-    # select games from given year
-    #df_plays = df_plays[[str(gId)[:4] in years_str for gId in df_plays.gameId]]
     # only Kickoff or Punts (no Field Goal or XP)
     df_plays = df_plays.loc[(df_plays.specialTeamsPlayType == 'Punt') #|
                             #(df_plays.specialTeamsPlayType == 'Kickoff')
@@ -91,8 +117,12 @@ def read_track(years, playIds_, base_path):
     return df_track
 
 def read_players(base_path):
-    df_games = pd.read_csv(base_path+'\\data\\players.csv')[['nflId', 'displayName']]
-    return df_games
+    df_players = pd.read_csv(base_path+'\\data\\players.csv')[['nflId', 'displayName']].copy()
+    
+    # manually change some names:
+    df_players.loc[df_players.displayName=='Cedrick Wilson', 'displayName'] = 'Ced Wilson'
+    
+    return df_players
 
 
 def extract_single_track(df_track, ex_play, gId, pId):
