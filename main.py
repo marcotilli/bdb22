@@ -8,36 +8,58 @@ Created on Sun Dec  5 13:40:02 2021
 # Import python libraries
 # ======================================================================== #
 import os, sys
-from tqdm import tqdm
+import torch
+from sklearn.model_selection import KFold
+
+# Init overall stuff
 # ======================================================================== #
 # base_path: C:\Users\lordm\Desktop\Work\BigDataBowl_2022
 base_path = os.getcwd()
-sys.path.append('.\\bdb22_github')
+sys.path.append('./bdb22')
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+# LOAD DATA
 # ======================================================================== #
 from load_data import load_dataframes
 years = [2020]
 df_plays, df_track, df_players, ids_tuples = load_dataframes(base_path, years)
 
-# get Dataloader (init Dataset and split data)
+# GET DATA
 # ======================================================================== #
 from build_data import build_data_loader
+dataset, testloader = build_data_loader(df_track, df_plays, df_players, ids_tuples)
 
-train_loader = build_data_loader(df_track, df_plays, df_players, ids_tuples)
-for _ in tqdm(train_loader):
-    pass
-
-# init model, optimizer
+# INIT HYPERPARAMETERS, K-FOLD
 # ======================================================================== #
-from model import hyperparams
+torch.manual_seed(42)
+from model import hyperparameters
+n_epoch, batch_size, kfold = hyperparameters()
+splits = KFold(n_splits = kfold, shuffle = True, random_state = 42)
 
-
+# TRAIN MODEL
 # ======================================================================== #
-# train model
+from train_eval import trainer
+model = trainer(splits, dataset, n_epoch, batch_size, device)
+torch.save(model,'k_cross_CNN.pt')  
 
-
+# TEST MODEL
 # ======================================================================== #
-# evaluate model
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

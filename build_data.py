@@ -6,40 +6,28 @@ Created on Fri Dec 10 08:43:51 2021
 """
 
 from torch.utils.data import Dataset, DataLoader
-from sklearn.model_selection import KFold, train_test_split
+from sklearn.model_selection import train_test_split
 from prep_data import get_data
 
 
-def build_data_loader(df_track, df_plays, df_players, ids_tuple):
+def build_data_loader(df_track, df_plays, df_players, ids_tuples):
     
     # Data Loader Parameters
-    loader_params = {'bs': 1,
-                     'shuffle': False, 
-                     'num_workers': 1}
+    #loader_params = {'bs': 1,
+    #                 'shuffle': False, 
+    #                 'num_workers': 1}
     
-    dataset = BasicTeamFieldControl(df_track, df_plays, df_players, ids_tuple, get_data)
-    train_loader = DataLoader(dataset, batch_size=loader_params['bs'], shuffle=False)
+    # load data
+    dataset = BasicTeamFieldControl(df_track, df_plays, df_players, ids_tuples, get_data)
+    # split into train and test data
+    train_dataset, test_dataset = train_test_split(dataset, test_size = 0.25)
+    # init test data loader
+    test_loader  = DataLoader(test_dataset, batch_size=1, shuffle=False)
     
-    # # Init. DataSet
-    # dataset = BasicTeamFieldControl(df_track, df_plays, df_players, ids_tuple, get_data)
-    # train_data, test_data = train_test_split(dataset, test_size=0.2, 
-    #                                          random_state=42, shuffle=True)
+    print("Examples in Train Data: {}".format(len(train_dataset)))
+    print("Examples in Test Loader: {}".format(len(test_loader)))
     
-    # # Train Eval Test Split
-    # k=8
-    # splits=KFold(n_splits=k, shuffle=True, random_state=42)
-    # foldperf={}
-    
-    # # The dataloaders handle shuffling, batching, etc...
-    # train_loader = DataLoader(train_data, batch_size=loader_params['bs'])
-    # #valid_loader = DataLoader(valid_data, batch_size=loader_params['bs'])
-    # test_loader  = DataLoader(test_data, batch_size=loader_params['bs'],shuffle=True)
-    
-    # print("Batches in Train Loader: {}".format(len(train_loader)))
-    # print("Batches in Valid Loader: {}".format(len(valid_loader)))
-    # print("Batches in Test Loader: {}".format(len(test_loader)))
-    
-    return train_loader#, test_loader
+    return train_dataset, test_loader
 
 
 
@@ -62,7 +50,10 @@ class BasicTeamFieldControl(Dataset):
 
 
 
-
-
+# for TESTING:
+# train_loader = build_data_loader(df_track, df_plays, df_players, ids_tuples)
+# for test in tqdm(train_loader):
+#     test_data, test_target = test
+#     break
 
 
