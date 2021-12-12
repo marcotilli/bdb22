@@ -53,7 +53,7 @@ def trainer(splits, dataset, n_epochs, batch_size, device):
             test_loss = test_loss / len(test_loader.sampler)
             test_acc = test_correct / len(test_loader.sampler) * 100
 
-            print("Epoch:{}/{} AVG Training Loss:{:.3f} AVG Test Loss:{:.3f} AVG Training Acc {:.2f} % AVG Test Acc {:.2f} %".format(epoch + 1, n_epochs, test_acc))
+            print("Epoch:{}/{} AVG Training Loss:{:.3f} AVG Test Loss:{:.3f} AVG Training Acc {:.2f} % AVG Test Acc {:.2f} %".format(epoch + 1,n_epochs, train_loss, test_loss, train_acc, test_acc))
             history['train_loss'].append(train_loss)
             history['test_loss'].append(test_loss)
             history['train_acc'].append(train_acc)
