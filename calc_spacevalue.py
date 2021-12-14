@@ -39,7 +39,7 @@ def calc_spacevalue(retName, ex_track, frameId=None, raw=False):
 
 
 # (4) apply Space Value to (a) team control 
-def compute_team_frame_control2(frame_track_data, home_team, retName):
+def compute_team_frame_control2(frame_track_data, poss_team, retName):
     
     sp_val_frame = calc_spacevalue(retName, frame_track_data)
     
@@ -51,8 +51,8 @@ def compute_team_frame_control2(frame_track_data, home_team, retName):
     frm_tr_dat = list(map(compute_player_zoi, frm_tr_dat))
     frm_tr_dat = pd.concat(frm_tr_dat)
 
-    # if player is from home_team, influence is negative
-    frm_tr_dat['influence'] *= (1-2*(frm_tr_dat.team == home_team))
+    # if player is from punting/kicking team, influence is negative
+    frm_tr_dat['influence'] *= (1-2*(frm_tr_dat.team == poss_team))
     #frm_tr_dat.assign(control=frm_tr_dat.groupby(['frameId', 'x', 'y']).influence.agg('sum'))
     frm_tr_dat['control'] = frm_tr_dat.groupby(['x', 'y']).influence.transform('sum')
     

@@ -9,20 +9,21 @@ Created on Sun Dec  5 13:40:02 2021
 # ======================================================================== #
 import os, sys
 import torch
-from sklearn.model_selection import KFold
+import pandas as pd
+#from sklearn.model_selection import KFold
 from torch.utils.data import DataLoader
 
 # Init overall stuff
 # ======================================================================== #
 # base_path: C:\Users\lordm\Desktop\Work\BigDataBowl_2022
 base_path = os.getcwd()
-sys.path.append('./bdb22')
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+sys.path.append('./bdb22_github')
+#device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # LOAD DATA
 # ======================================================================== #
 from load_data import load_dataframes
-years = [2020]
+years = None # take every year
 df_plays, df_track, df_players, ids_tuples = load_dataframes(base_path, years)
 
 # GET DATA
@@ -30,10 +31,19 @@ df_plays, df_track, df_players, ids_tuples = load_dataframes(base_path, years)
 from build_data import build_data_loader
 dataset, testloader = build_data_loader(df_track, df_plays, df_players, ids_tuples)
 
-#trainloader = DataLoader(dataset, batch_size=1, shuffle=False)
-#for tester in tqdm(trainloader):
-#    tester_data, tester_target = tester
-#    break
+from tqdm import tqdm
+trainloader = DataLoader(dataset, batch_size=1, shuffle=False)
+data_csv = []
+for data, target in tqdm(trainloader):
+    if torch.sum(data).item() > 0:
+        data_team = data.squeeze()[0].view(-1)
+        data_ret  = data.squeeze()[1].view(-1)
+        data_csv.append([target.item(), data_team.tolist(), data_ret.tolist()])
+    
+dataframe = pd.DataFrame(data_csv, columns=['target', 'fc_team', 'fc_ret']) 
+dataframe.to_csv('traindata.csv')
+
+
 
 # INIT HYPERPARAMETERS, K-FOLD
 # ======================================================================== #
@@ -41,6 +51,7 @@ torch.manual_seed(42)
 from model import hyperparameters
 n_epochs, batch_size, kfold = hyperparameters()
 splits = KFold(n_splits = kfold, shuffle = True, random_state = 42)
+
 
 # TRAIN MODEL
 # ======================================================================== #

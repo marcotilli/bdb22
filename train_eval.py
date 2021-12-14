@@ -52,7 +52,9 @@ def trainer(splits, dataset, n_epochs, batch_size, device):
             train_acc = train_correct / len(train_loader.sampler) * 100
             test_loss = test_loss / len(test_loader.sampler)
             test_acc = test_correct / len(test_loader.sampler) * 100
-
+            
+            if epoch % 10 == 0:
+                torch.save(model, 'Fold'+fold+'_ep'+epoch+'k_cross_CNN.pt')
             print("Epoch:{}/{} AVG Training Loss:{:.3f} AVG Test Loss:{:.3f} AVG Training Acc {:.2f} % AVG Test Acc {:.2f} %".format(epoch + 1,n_epochs, train_loss, test_loss, train_acc, test_acc))
             history['train_loss'].append(train_loss)
             history['test_loss'].append(test_loss)
@@ -60,7 +62,8 @@ def trainer(splits, dataset, n_epochs, batch_size, device):
             history['test_acc'].append(test_acc)
         
         foldperf['fold{}'.format(fold+1)] = history  
-    
+        
+        
     return model 
 
 

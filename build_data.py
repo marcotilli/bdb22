@@ -6,7 +6,6 @@ Created on Fri Dec 10 08:43:51 2021
 """
 
 from torch.utils.data import Dataset, DataLoader, random_split
-from sklearn.model_selection import train_test_split
 from prep_data import get_data
 
 
@@ -55,6 +54,21 @@ class BasicTeamFieldControl(Dataset):
         return ex_fc, retYards
 
 
+class PreparedDS(Dataset):
+    def __init__(self):
+        df = pd.read_csv('../input/cnn1-traindata2020/data2020.csv', index_col=0)
+        self.targets = df['y_hat'].to_numpy()
+        ex_team = list(df['team'])
+        ex_ret = list(df['ret'])
+        ex_team = np.array([[float(i) for i in row[1:-1].split(',')] for row in list(df['team'])])
+        ex_ret  = np.array([[float(i) for i in row[1:-1].split(',')] for row in list(df['ret'] )])
+        self.ex_track = np.stack((ex_team.reshape(-1, 120, 54), ex_ret.reshape(-1, 120, 54)), axis=1)
+        
+    def __len__(self):
+        return len(self.targets)
+    
+    def __getitem__(self, idx):
+        return self.ex_track[idx], self.targets[idx]
 
 # for TESTING:
 # train_loader = build_data_loader(df_track, df_plays, df_players, ids_tuples)

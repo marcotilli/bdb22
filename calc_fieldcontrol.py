@@ -26,8 +26,8 @@ def func_calc_fc_combined(ex_track):
     return ex_track
 
 
-def compute_team_frame_control(frame_track_data, home_team):
-    #frame_track_data, home_team = ex_track_, h_team
+def compute_team_frame_control(frame_track_data, poss_team):
+    #frame_track_data, poss_team = ex_track_, poss_team
     if frame_track_data.size == 0:
         return np.zeros((3))
     
@@ -39,8 +39,8 @@ def compute_team_frame_control(frame_track_data, home_team):
     frm_tr_dat = list(map(compute_player_zoi, frm_tr_dat))
     frm_tr_dat = pd.concat(frm_tr_dat)
     
-    # if player is from home_team, influence is negative
-    frm_tr_dat['influence'] *= (1-2*(frm_tr_dat.team == home_team))
+    # if player is from punt/kick_team, influence is negative
+    frm_tr_dat['influence'] *= (1-2*(frm_tr_dat.team == poss_team))
     #frm_tr_dat.assign(control=frm_tr_dat.groupby(['frameId', 'x', 'y']).influence.agg('sum'))
     frm_tr_dat['control'] = frm_tr_dat.groupby(['x', 'y']).influence.transform('sum')
     frm_tr_dat['control'] = 1 / (1 + np.exp(frm_tr_dat['control'])) # control [0,1]

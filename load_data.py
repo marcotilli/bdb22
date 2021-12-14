@@ -54,7 +54,10 @@ def load_playIds(df_plays):
                                   (2020101200, 2425), (2020101900, 254),  
                                   (2020112905, 145), (2020122003, 1429) 
                                   ]]
-     
+    # season 2019
+    
+    
+    
     return gId_pIds
 
 
@@ -66,8 +69,8 @@ def fetch_team_colors(h_team, a_team, base_path=None):
                     columns=['color1_family'])
     #colors_url <- "https://raw.githubusercontent.com/asonty/ngs_highlights/master/utils/data/nfl_team_colors.tsv"
     team_colors = team_colors[[team in (h_team, a_team) for team in team_colors.teams]]
-    team_colors.teams[team_colors.teams == h_team] = 'home'
-    team_colors.teams[team_colors.teams == a_team] = 'away'
+    team_colors.teams[team_colors.teams == h_team] = 'retTeam'
+    team_colors.teams[team_colors.teams == a_team] = 'posTeam'
     return team_colors.set_index('teams')
 
 
@@ -97,6 +100,10 @@ def read_plays(base_path, years=None):
     df_plays['kickReturnYardage'] = df_plays.kickReturnYardage.fillna(0)
     
     df_plays = df_plays.merge(df_games, on='gameId')
+    retteam = df_plays.homeTeamAbbr.copy()
+    retteam.loc[df_plays.possessionTeam == df_plays.homeTeamAbbr] = df_plays['visitorTeamAbbr'].copy()
+    df_plays['returningTeam'] = retteam
+    df_plays.drop(columns= ['homeTeamAbbr', 'visitorTeamAbbr'])
     return df_plays
 
 def read_track(years, playIds_, base_path):
@@ -150,12 +157,12 @@ def adapt_single_play(ex_play, playdir, base_path):
     ex_play.drop(columns=['absoluteYardlineNumber'], inplace=True)
     
     # add team colors
-    team_colors = fetch_team_colors(ex_play.homeTeamAbbr.item(), 
-                                  ex_play.visitorTeamAbbr.item(), base_path)
-    h = team_colors.loc['home'][['color1', 'color2']]
-    a = team_colors.loc['away'][['color1', 'color2']]
-    ex_play['home1'], ex_play['home2'] = h[0], h[1] 
-    ex_play['away1'], ex_play['away2'] = a[0], a[1] 
+    team_colors = fetch_team_colors(ex_play.returningTeam.item(), 
+                                    ex_play.possessionTeam.item(), base_path)
+    r = team_colors.loc['retTeam'][['color1', 'color2']] # returningTeam
+    p = team_colors.loc['posTeam'][['color1', 'color2']] # possesionTeam
+    ex_play['retTeam1'], ex_play['retTeam2'] = r[0], r[1] 
+    ex_play['posTeam1'], ex_play['posTeam2'] = p[0], p[1] 
     
     return ex_play
 
@@ -165,8 +172,8 @@ def convert_radiant(df, ex_play):
     df['v_y'] = np.cos(df['dir']) * df['s']
     v_theta = np.arctan(df['v_y'] / df['v_x'])
     df['v_theta'] = [0 if np.isnan(vt) else vt for vt in v_theta]
-    team_dict = {'home': ex_play.homeTeamAbbr.item(), 
-                 'away': ex_play.visitorTeamAbbr.item(),
+    team_dict = {'retTeam': ex_play.returningTeam, 
+                 'posTeam': ex_play.possessionTeam,
                  'football': 'football'}
     df['team'] = df['team'].map(team_dict)
     df = df[['frameId', 'event', 'team', 'jerseyNumber', 'displayName', 
