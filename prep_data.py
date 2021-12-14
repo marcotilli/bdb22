@@ -20,11 +20,9 @@ from calc_fieldcontrol import func_calc_fc_combined, compute_team_frame_control
 def get_data(ex_gameId, ex_playId, df_track, df_plays, df_players, 
              base_path = None, anim = 'frame'):
     
-    # loop over games, plays; below a example play
-    #ex_gameId, ex_playId = 2020092004, 2025
+    ex_track, ex_play = load_single_play(ex_gameId, ex_playId, df_track, df_plays, base_path=None)
     
     try:
-        ex_track, ex_play = load_single_play(ex_gameId, ex_playId, df_track, df_plays, base_path=None)
         ex_target = comp_target(ex_play)
         ex_track  = comp_field_influence(ex_play.copy(), ex_track.copy(), anim)
         # ex_track.shape: (142560,8) - due to 22*(120*54)
@@ -61,7 +59,7 @@ def comp_field_influence(ex_play, ex_track, anim='frame'):
     ex_track_ = func_calc_fc_combined(ex_track_)
     #if ex_track_.shape[0] < 22: 
     #    print('ERROR: ', (ex_play.gameId.item(), ex_play.playId.item()), ex_track.shape)
-    poss_team = ex_play.possesionTeam.item()
+    poss_team = ex_play.possessionTeam.item()
     
     #if anim != 'frame':
     #   temp = np.array([(fId, compute_team_frame_control(frame_track, h_team))

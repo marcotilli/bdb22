@@ -23,7 +23,7 @@ sys.path.append('./bdb22_github')
 # LOAD DATA
 # ======================================================================== #
 from load_data import load_dataframes
-years = None # take every year
+years = [2018, 2019, 2020] # take every year
 df_plays, df_track, df_players, ids_tuples = load_dataframes(base_path, years)
 
 # GET DATA
@@ -31,17 +31,17 @@ df_plays, df_track, df_players, ids_tuples = load_dataframes(base_path, years)
 from build_data import build_data_loader
 dataset, testloader = build_data_loader(df_track, df_plays, df_players, ids_tuples)
 
-from tqdm import tqdm
 trainloader = DataLoader(dataset, batch_size=1, shuffle=False)
-data_csv = []
-for data, target in tqdm(trainloader):
-    if torch.sum(data).item() > 0:
-        data_team = data.squeeze()[0].view(-1)
-        data_ret  = data.squeeze()[1].view(-1)
-        data_csv.append([target.item(), data_team.tolist(), data_ret.tolist()])
+# data_csv = []
+# for data, target in trainloader:
+#     if torch.sum(data).item() > 0:
+#         data_team = data.squeeze()[0].view(-1)
+#         data_ret  = data.squeeze()[1].view(-1)
+#         data_csv.append([target.item(), data_team.tolist(), data_ret.tolist()])
     
-dataframe = pd.DataFrame(data_csv, columns=['target', 'fc_team', 'fc_ret']) 
-dataframe.to_csv('traindata.csv')
+# dataframe = pd.DataFrame(data_csv, columns=['target', 'fc_team', 'fc_ret']) 
+# dataframe.to_csv('traindata.csv')
+# #dataframe = pd.read_csv('traindata.csv', index_col=0)
 
 
 

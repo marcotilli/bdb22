@@ -54,18 +54,40 @@ def load_playIds(df_plays):
                                   (2020101200, 2425), (2020101900, 254),  
                                   (2020112905, 145), (2020122003, 1429) 
                                   ]]
-    # season 2019
-    
-    
+    # season 2018, 2019
+    # 2019091500 479, 2019111701 1593, 
+    # 2018091600 2116, 2019092205 1605, 
+    # 2018100710 2788, 2019102708 962 ,
+    # 2019122200 3308, 2018111108 1721, 
+    # 2018120208 1565, 2018120903 2565, 
+    # 2018090600 3225,2018123011 1435,
+    # 2018123014 1602,2018092308 2966,
+    # 2019122909 2658,2019112408 3869, 
+    # 2018092308 569 ,2018101800 1346, 
+    # 2018101100 1387,2019112401 866 ,
+    # 2019112405 529 ,2019092907 632 ,
+    # 2019100603 479 ,2019122914 2742, 
+    # 2018090905 3844,2018112900 2456, 
+    # 2019102002 1017, 2018110404 137 ,
+    # 2018120209 1259, 2018102102 2179, 
+    # 2018093005 3731, 2021010309 3478, 
+    # 2019092907 1203, 2018090905 2393, 
+    # 2018092000 542 ,2018102104 789 ,
+    # 2019090803 617 , 2018112509 3099, 
+    # 2018102103 1394, 2019120805 3556,
+    # 2018092000 801 ,2019092202 531 ,
+    # 2019101700 2334,2021010306 1090, 
+    # 2021010311 2781,2018120600 786, 
+    # 2018091606 2807, 2019122210 1610, 2018101402 2461
     
     return gId_pIds
 
 
-
-def fetch_team_colors(h_team, a_team, base_path=None):
+def fetch_team_colors(h_team, a_team):
     
-    if base_path is None: base_path = 'C:\\Users\\lordm\\Desktop\\Work\\BigDataBowl_2022\\'
-    team_colors = pd.read_csv(base_path+'data\\team_colors.txt', sep='\t').drop(
+    base_path = 'C:\\Users\\Tilli\\Desktop\\Privat\\BigDataBowl2022'
+    #if base_path is None: base_path = 'C:\\Users\\lordm\\Desktop\\Work\\BigDataBowl_2022\\'
+    team_colors = pd.read_csv(base_path+'\\data\\team_colors.txt', sep='\t').drop(
                     columns=['color1_family'])
     #colors_url <- "https://raw.githubusercontent.com/asonty/ngs_highlights/master/utils/data/nfl_team_colors.tsv"
     team_colors = team_colors[[team in (h_team, a_team) for team in team_colors.teams]]
@@ -74,13 +96,13 @@ def fetch_team_colors(h_team, a_team, base_path=None):
     return team_colors.set_index('teams')
 
 
-def read_plays(base_path, years=None):
+def read_plays(base_path, years):
     # brauche ja nicht nach years filtern, wenn ich eh alle nehme?
     
     df_games = pd.read_csv(base_path+'\\data\\games.csv')
-    if years is None:
+    if len(years) > 1:
         df_games = df_games[['gameId', 'homeTeamAbbr', 'visitorTeamAbbr']]  
-        df_plays = pd.read_csv(base_path+'\\data\\plays.csv') 
+        df_plays = pd.read_csv(base_path+'\\data\\plays.csv')
     else: # if 1 year is given
         df_games = df_games.loc[df_games.season == years[0]][
                                   ['gameId', 'homeTeamAbbr', 'visitorTeamAbbr']]      
@@ -158,7 +180,7 @@ def adapt_single_play(ex_play, playdir, base_path):
     
     # add team colors
     team_colors = fetch_team_colors(ex_play.returningTeam.item(), 
-                                    ex_play.possessionTeam.item(), base_path)
+                                    ex_play.possessionTeam.item())
     r = team_colors.loc['retTeam'][['color1', 'color2']] # returningTeam
     p = team_colors.loc['posTeam'][['color1', 'color2']] # possesionTeam
     ex_play['retTeam1'], ex_play['retTeam2'] = r[0], r[1] 

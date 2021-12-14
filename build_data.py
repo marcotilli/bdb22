@@ -22,7 +22,7 @@ def build_data_loader(df_track, df_plays, df_players, ids_tuples):
     # split into train and test data
     print('Split Data ... ', end='\r')
     #train_dataset, test_dataset = train_test_split(dataset, test_size = 0.25)
-    lengths = [int(len(dataset)*0.80)+1, int(len(dataset)*0.20)]
+    lengths = [int(len(dataset)*0.80), int(len(dataset)*0.20)]
     train_dataset, test_dataset = random_split(dataset, lengths)
     
     # init test data loader
